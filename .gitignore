@@ -5,3 +5,7 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+database.db
+database.db-journal
+*.db
+*.db-journal

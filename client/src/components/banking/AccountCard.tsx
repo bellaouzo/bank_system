@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, DollarSign, CreditCard, TrendingUp, MoreHorizontal, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Wallet, DollarSign, CreditCard, TrendingUp, MoreHorizontal, ArrowUpRight, ArrowDownRight, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import type { Account } from "@shared/schema";
 
 interface AccountCardProps {
   account: Account;
   onViewDetails?: (account: Account) => void;
   onTransfer?: (account: Account) => void;
+  onDelete?: (account: Account) => void;
   showActions?: boolean;
   compact?: boolean;
+  hideViewDetails?: boolean;
 }
 
 const accountIcons = {
@@ -26,7 +28,7 @@ const accountColors = {
   Investment: "text-purple-500/50",
 };
 
-export function AccountCard({ account, onViewDetails, onTransfer, showActions = true, compact = false }: AccountCardProps) {
+export function AccountCard({ account, onViewDetails, onTransfer, onDelete, showActions = true, compact = false, hideViewDetails = false }: AccountCardProps) {
   const Icon = accountIcons[account.type as keyof typeof accountIcons] || Wallet;
   const iconColor = accountColors[account.type as keyof typeof accountColors] || "text-primary/50";
   const balance = parseFloat(account.balance);
@@ -68,14 +70,28 @@ export function AccountCard({ account, onViewDetails, onTransfer, showActions = 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onViewDetails?.(account)}>
-                  View Details
-                </DropdownMenuItem>
+                {!hideViewDetails && (
+                  <DropdownMenuItem onClick={() => onViewDetails?.(account)}>
+                    View Details
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => onTransfer?.(account)}>
                   Transfer Funds
                 </DropdownMenuItem>
                 <DropdownMenuItem>View Statements</DropdownMenuItem>
                 <DropdownMenuItem>Set Alerts</DropdownMenuItem>
+                {onDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => onDelete(account)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Account
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -94,9 +110,11 @@ export function AccountCard({ account, onViewDetails, onTransfer, showActions = 
             <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => onTransfer?.(account)}>
               <ArrowUpRight className="w-3 h-3 mr-1" /> Transfer
             </Button>
-            <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => onViewDetails?.(account)}>
-              <ArrowDownRight className="w-3 h-3 mr-1" /> Details
-            </Button>
+            {!hideViewDetails && (
+              <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => onViewDetails?.(account)}>
+                <ArrowDownRight className="w-3 h-3 mr-1" /> Details
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

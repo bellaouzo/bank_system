@@ -1,10 +1,9 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, serial, decimal, timestamp, integer } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
@@ -17,32 +16,32 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-export const accounts = pgTable("accounts", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+export const accounts = sqliteTable("accounts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().references(() => users.id),
   type: text("type").notNull(),
   name: text("name").notNull(),
-  balance: decimal("balance", { precision: 12, scale: 2 }).notNull().default("0"),
+  balance: text("balance").notNull().default("0"),
   accountNumber: text("account_number").notNull(),
 });
 
-export const transactions = pgTable("transactions", {
-  id: serial("id").primaryKey(),
+export const transactions = sqliteTable("transactions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   accountId: integer("account_id").notNull().references(() => accounts.id),
-  date: timestamp("date").notNull().defaultNow(),
+  date: integer("date", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
   description: text("description").notNull(),
-  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  amount: text("amount").notNull(),
   type: text("type").notNull(),
   category: text("category").notNull(),
   status: text("status").notNull().default("posted"),
 });
 
-export const transfers = pgTable("transfers", {
-  id: serial("id").primaryKey(),
+export const transfers = sqliteTable("transfers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   fromAccountId: integer("from_account_id").notNull().references(() => accounts.id),
   toAccountId: integer("to_account_id").notNull().references(() => accounts.id),
-  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
-  date: timestamp("date").notNull().defaultNow(),
+  amount: text("amount").notNull(),
+  date: integer("date", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
   memo: text("memo"),
   status: text("status").notNull().default("completed"),
 });

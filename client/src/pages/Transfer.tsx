@@ -3,8 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LoadingState } from "@/components/banking/LoadingState";
 import { ShieldCheck, ArrowRight } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchAccounts, createTransfer } from "@/lib/api";
@@ -12,7 +15,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Transfer() {
-  const { data: accounts = [] } = useQuery({
+  const { data: accounts = [], isLoading: accountsLoading } = useQuery({
     queryKey: ["accounts"],
     queryFn: fetchAccounts,
   });
@@ -97,21 +100,25 @@ export default function Transfer() {
                 <div className="grid gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="from">From Account</Label>
-                    <Select value={fromAccountId} onValueChange={setFromAccountId}>
-                      <SelectTrigger id="from" className="h-14" data-testid="select-from-account">
-                        <SelectValue placeholder="Select account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accounts.map(acc => (
-                          <SelectItem key={acc.id} value={acc.id.toString()}>
-                            <div className="flex flex-col text-left">
-                              <span className="font-medium">{acc.name} ({acc.accountNumber})</span>
-                              <span className="text-xs text-muted-foreground">Available: ${parseFloat(acc.balance).toLocaleString()}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {accountsLoading ? (
+                      <Skeleton className="h-14 w-full" />
+                    ) : (
+                      <Select value={fromAccountId} onValueChange={setFromAccountId}>
+                        <SelectTrigger id="from" className="h-14" data-testid="select-from-account">
+                          <SelectValue placeholder="Select account" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {accounts.map(acc => (
+                            <SelectItem key={acc.id} value={acc.id.toString()}>
+                              <div className="flex flex-col text-left">
+                                <span className="font-medium">{acc.name} ({acc.accountNumber})</span>
+                                <span className="text-xs text-muted-foreground">Available: ${parseFloat(acc.balance).toLocaleString()}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div className="flex justify-center -my-2 z-10">
@@ -122,21 +129,25 @@ export default function Transfer() {
 
                   <div className="grid gap-2">
                     <Label htmlFor="to">To Account</Label>
-                    <Select value={toAccountId} onValueChange={setToAccountId}>
-                      <SelectTrigger id="to" className="h-14" data-testid="select-to-account">
-                        <SelectValue placeholder="Select account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accounts.map(acc => (
-                          <SelectItem key={acc.id} value={acc.id.toString()}>
-                            <div className="flex flex-col text-left">
-                              <span className="font-medium">{acc.name} ({acc.accountNumber})</span>
-                              <span className="text-xs text-muted-foreground">Current: ${parseFloat(acc.balance).toLocaleString()}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {accountsLoading ? (
+                      <Skeleton className="h-14 w-full" />
+                    ) : (
+                      <Select value={toAccountId} onValueChange={setToAccountId}>
+                        <SelectTrigger id="to" className="h-14" data-testid="select-to-account">
+                          <SelectValue placeholder="Select account" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {accounts.map(acc => (
+                            <SelectItem key={acc.id} value={acc.id.toString()}>
+                              <div className="flex flex-col text-left">
+                                <span className="font-medium">{acc.name} ({acc.accountNumber})</span>
+                                <span className="text-xs text-muted-foreground">Current: ${parseFloat(acc.balance).toLocaleString()}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div className="grid gap-2">
@@ -183,10 +194,17 @@ export default function Transfer() {
                 <Button 
                   className="w-full h-11 text-base bg-primary hover:bg-primary/90"
                   onClick={handleTransfer}
-                  disabled={transferMutation.isPending}
+                  disabled={transferMutation.isPending || accountsLoading}
                   data-testid="button-review-transfer"
                 >
-                  {transferMutation.isPending ? "Processing..." : "Complete Transfer"}
+                  {transferMutation.isPending ? (
+                    <>
+                      <Spinner className="mr-2 h-4 w-4" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Complete Transfer"
+                  )}
                 </Button>
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                   <ShieldCheck className="w-4 h-4 text-green-600" />

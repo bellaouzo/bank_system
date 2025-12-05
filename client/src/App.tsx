@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Transactions from "@/pages/Transactions";
+import Accounts from "@/pages/Accounts";
+import AccountDetail from "@/pages/AccountDetail";
 import Transfer from "@/pages/Transfer";
 import Statements from "@/pages/Statements";
 
@@ -14,7 +16,10 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/transactions" component={Transactions} />
-      <Route path="/accounts" component={Transactions} /> 
+      <Route path="/accounts/:id">
+        {({ params }) => <AccountDetail params={params} />}
+      </Route>
+      <Route path="/accounts" component={Accounts} /> 
       <Route path="/transfer" component={Transfer} />
       <Route path="/statements" component={Statements} />
       <Route component={NotFound} />

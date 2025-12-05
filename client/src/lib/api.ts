@@ -8,6 +8,12 @@ export async function fetchAccounts(): Promise<Account[]> {
   return response.json();
 }
 
+export async function fetchAccount(id: number): Promise<Account> {
+  const response = await fetch(`${API_BASE}/accounts/${id}`);
+  if (!response.ok) throw new Error("Failed to fetch account");
+  return response.json();
+}
+
 export async function fetchTransactions(accountId?: number): Promise<Transaction[]> {
   const url = accountId 
     ? `${API_BASE}/transactions?accountId=${accountId}`
@@ -15,6 +21,35 @@ export async function fetchTransactions(accountId?: number): Promise<Transaction
   const response = await fetch(url);
   if (!response.ok) throw new Error("Failed to fetch transactions");
   return response.json();
+}
+
+export async function createAccount(data: {
+  userId: string;
+  type: string;
+  name: string;
+  balance?: string;
+  accountNumber: string;
+}): Promise<Account> {
+  const response = await fetch(`${API_BASE}/accounts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create account");
+  }
+  return response.json();
+}
+
+export async function deleteAccount(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/accounts/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to delete account");
+  }
 }
 
 export async function createTransfer(data: {

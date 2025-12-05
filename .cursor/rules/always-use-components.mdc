@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Always use my existing components, and create new ones only if needed.

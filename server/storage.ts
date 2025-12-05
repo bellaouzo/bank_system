@@ -13,7 +13,7 @@ import {
   transfers
 } from "@shared/schema";
 import { db } from "./db.ts";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, or, inArray } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -24,6 +24,7 @@ export interface IStorage {
   getAccount(id: number): Promise<Account | undefined>;
   createAccount(account: InsertAccount): Promise<Account>;
   updateAccountBalance(id: number, newBalance: string): Promise<Account>;
+  deleteAccount(id: number): Promise<void>;
   
   getTransactions(accountId?: number): Promise<Transaction[]>;
   getTransactionsByUser(userId: string): Promise<Transaction[]>;
@@ -75,6 +76,14 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async deleteAccount(id: number): Promise<void> {
+    await db.delete(transactions).where(eq(transactions.accountId, id));
+    await db.delete(transfers).where(
+      or(eq(transfers.fromAccountId, id), eq(transfers.toAccountId, id))
+    );
+    await db.delete(accounts).where(eq(accounts.id, id));
+  }
+
   async getTransactions(accountId?: number): Promise<Transaction[]> {
     if (accountId) {
       return await db
@@ -119,6 +128,17 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(transfers)
       .orderBy(desc(transfers.date));
+  }
+
+  async getOrCreateDefaultUser(): Promise<User> {
+    let user = await this.getUserByUsername("johndoe");
+    if (!user) {
+      user = await this.createUser({
+        username: "johndoe",
+        password: "placeholder",
+      });
+    }
+    return user;
   }
 }
 

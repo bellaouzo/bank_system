@@ -1,6 +1,8 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingState, AccountCardSkeleton, TransactionItemSkeleton } from "@/components/banking/LoadingState";
 import { ArrowUpRight, ArrowDownRight, CreditCard, DollarSign, Wallet } from "lucide-react";
 import { format } from "date-fns";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
@@ -37,8 +39,63 @@ export default function Dashboard() {
   if (accountsLoading || transactionsLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading...</div>
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div>
+              <Skeleton className="h-9 w-64 mb-2" />
+              <Skeleton className="h-5 w-96" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-36" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <AccountCardSkeleton key={i} />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <Skeleton className="h-6 w-48 mb-2" />
+                  <Skeleton className="h-4 w-64" />
+                </CardHeader>
+                <CardContent className="h-[250px] w-full pt-2">
+                  <LoadingState message="Loading chart..." />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <Skeleton className="h-6 w-48 mb-2" />
+                  <Skeleton className="h-4 w-64" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <TransactionItemSkeleton key={i} />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-4">
+              <Card className="bg-muted/50">
+                <CardHeader className="pb-3">
+                  <Skeleton className="h-6 w-32 mb-2" />
+                  <Skeleton className="h-4 w-48" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-10 w-40" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </Layout>
     );
@@ -46,8 +103,8 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-primary">Good Morning, John</h2>
             <p className="text-muted-foreground mt-1">Here is your financial overview for today.</p>
@@ -64,7 +121,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {accounts.map((account) => (
             <Card key={account.id} className="relative overflow-hidden hover:shadow-md transition-shadow duration-200 border-t-4 border-t-primary" data-testid={`card-account-${account.id}`}>
               <CardHeader className="pb-2">
@@ -88,15 +145,15 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 space-y-4">
             
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle>Balance History</CardTitle>
                 <CardDescription>Your total assets over the last 7 months</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px] w-full pt-4">
+              <CardContent className="h-[250px] w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
@@ -136,7 +193,7 @@ export default function Dashboard() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div>
                   <CardTitle>Recent Transactions</CardTitle>
                   <CardDescription>Latest activity across all accounts</CardDescription>
@@ -146,7 +203,7 @@ export default function Dashboard() {
                 </Link>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {recentTransactions.slice(0, 6).map((tx) => (
                     <div key={tx.id} className="flex items-center justify-between p-2 hover:bg-muted/30 rounded-lg transition-colors group" data-testid={`transaction-${tx.id}`}>
                       <div className="flex items-center gap-4">
@@ -171,18 +228,17 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="bg-primary text-primary-foreground border-none shadow-lg">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-xl">Quick Transfer</CardTitle>
                 <CardDescription className="text-primary-foreground/80">Send money instantly</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div className="space-y-2">
                   <label className="text-xs font-medium uppercase text-primary-foreground/70">From</label>
-                  <div className="p-3 bg-white/10 rounded-md border border-white/10 text-sm flex justify-between items-center">
-                    <span>{accounts[0]?.name} {accounts[0]?.accountNumber}</span>
-                    <span className="font-mono">${parseFloat(accounts[0]?.balance || "0").toLocaleString()}</span>
+                  <div className="p-3 bg-white/10 rounded-md border border-white/10 text-sm">
+                    <span>{accounts[0]?.name || "No account"} {accounts[0]?.accountNumber || ""}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -209,11 +265,11 @@ export default function Dashboard() {
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-base">Financial Insights</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="p-3 bg-amber-50 border border-amber-100 rounded-md">
                     <p className="text-sm text-amber-900 font-medium">Unusual spending detected</p>
                     <p className="text-xs text-amber-700 mt-1">Your dining expenses are 20% higher than last month.</p>
@@ -224,7 +280,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="pt-3">
                 <Button variant="link" className="text-primary w-full text-xs">View all insights</Button>
               </CardFooter>
             </Card>

@@ -11,8 +11,8 @@ export async function registerRoutes(
   
   app.get("/api/accounts", async (req, res) => {
     try {
-      const userId = "user_1";
-      const accounts = await storage.getAccounts(userId);
+      const user = await storage.getOrCreateDefaultUser();
+      const accounts = await storage.getAccounts(user.id);
       res.json(accounts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch accounts" });
@@ -35,26 +35,52 @@ export async function registerRoutes(
   app.post("/api/accounts", async (req, res) => {
     try {
       const validatedData = insertAccountSchema.parse(req.body);
-      const account = await storage.createAccount(validatedData);
+      
+      const user = await storage.getOrCreateDefaultUser();
+      
+      const account = await storage.createAccount({
+        ...validatedData,
+        userId: user.id,
+      });
       res.status(201).json(account);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
-      res.status(500).json({ error: "Failed to create account" });
+      console.error("Error creating account:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to create account";
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  app.delete("/api/accounts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const account = await storage.getAccount(id);
+      
+      if (!account) {
+        return res.status(404).json({ error: "Account not found" });
+      }
+      
+      await storage.deleteAccount(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete account";
+      res.status(500).json({ error: errorMessage });
     }
   });
 
   app.get("/api/transactions", async (req, res) => {
     try {
-      const userId = "user_1";
       const accountId = req.query.accountId ? parseInt(req.query.accountId as string) : undefined;
       
       let transactions;
       if (accountId) {
         transactions = await storage.getTransactions(accountId);
       } else {
-        transactions = await storage.getTransactionsByUser(userId);
+        const user = await storage.getOrCreateDefaultUser();
+        transactions = await storage.getTransactionsByUser(user.id);
       }
       
       res.json(transactions);
